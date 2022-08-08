@@ -31,6 +31,8 @@ jobs:
       - id: killswitch
         name: Check release blockers
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
         run: |
           if [[ -z '${{ inputs.force }}' ]] && gh issue list -l release-blocker -s open | grep -q '^[0-9]\+[[:space:]]'; then
             echo "Open release-blocking issues found, cancelling release...";
@@ -38,6 +40,8 @@ jobs:
           fi
       - name: Determine version
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
         run: |
           if [[ -n '${{ inputs.version }}' ]]; then
             echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
@@ -87,6 +91,8 @@ jobs:
 ##        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
       - name: Request publish
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
         run: |
           if [[ '${{ inputs.path }}' == '.' ]]; then
             subdirectory='';
