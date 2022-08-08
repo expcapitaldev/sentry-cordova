@@ -162,7 +162,7 @@ jobs:
        - name: Archive artifacts tgz
          uses: actions/upload-artifact@v2
          with:
-           name: (Get-Item *.tgz).Name
+           name: ${{ github.sha }}.tar
            path: |
              ${{ github.workspace }}/sentry-cordova-*
 
