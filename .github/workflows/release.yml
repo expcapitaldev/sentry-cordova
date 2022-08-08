@@ -86,55 +86,55 @@ jobs:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
         run: make build
 
-    job_artifacts:
-      name: Upload Artifacts
-      needs: [ job_build, job_carthage_build ]
-      runs-on: macos-latest
-      steps:
-        - name: Check out current commit (${{ github.sha }})
-          uses: actions/checkout@v2
-        - name: Set up Node
-          uses: actions/setup-node@v1
-        - name: Check dependency cache
-          uses: actions/cache@v2
-          with:
-            path: ${{ env.CACHED_DEPENDENCY_PATHS }}
-            key: ${{ needs.job_build.outputs.dependency_cache_key }}
-        - name: Check build cache
-          uses: actions/cache@v2
-          with:
-            path: ${{ env.CACHED_BUILD_PATHS }}
-            key: ${{ env.BUILD_CACHE_KEY }}
-        - name: Check Carthage build cache
-          uses: actions/cache@v2
-          with:
-            path: ${{ env.CACHED_CARTHAGE_PATHS }}
-            key: ${{ hashFiles('src/ios/Cartfile') }}
-        - name: Check that Carthage build exists
-          run: test -d src/ios/Carthage || exit 1
-        - name: Pack
-          run: yarn pack
-        - name: Archive artifacts
-          uses: actions/upload-artifact@v2
-          with:
-            name: sentry-cordova-${{ github.sha }}
-            path: |
-              ${{ github.workspace }}/sentry-cordova-*
-
-    job_release:
-      - name: Download app artifact
-        uses: actions/download-artifact@v2
+  job_artifacts:
+    name: Upload Artifacts
+    needs: [ job_build, job_carthage_build ]
+    runs-on: macos-latest
+    steps:
+      - name: Check out current commit (${{ github.sha }})
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v1
+      - name: Check dependency cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+          key: ${{ needs.job_build.outputs.dependency_cache_key }}
+      - name: Check build cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CACHED_BUILD_PATHS }}
+          key: ${{ env.BUILD_CACHE_KEY }}
+      - name: Check Carthage build cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.CACHED_CARTHAGE_PATHS }}
+          key: ${{ hashFiles('src/ios/Cartfile') }}
+      - name: Check that Carthage build exists
+        run: test -d src/ios/Carthage || exit 1
+      - name: Pack
+        run: yarn pack
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
         with:
           name: sentry-cordova-${{ github.sha }}
           path: |
-            ${{ github.workspace }}/artifact
-      - name: Upload Sentry Cordova
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
-          asset_name: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
-          asset_content_type: application/tgz
+            ${{ github.workspace }}/sentry-cordova-*
+
+  job_release:
+    - name: Download app artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: sentry-cordova-${{ github.sha }}
+        path: |
+          ${{ github.workspace }}/artifact
+    - name: Upload Sentry Cordova
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.release.outputs.upload_url }}
+        asset_path: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
+        asset_name: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
+        asset_content_type: application/tgz
 
