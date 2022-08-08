@@ -9,6 +9,18 @@ on:
         description: Force a release even when there are release-blockers (optional)
         required: false
 
+env:
+   CACHED_DEPENDENCY_PATHS: |
+     ${{ github.workspace }}/node_modules
+
+   CACHED_BUILD_PATHS: |
+     ${{ github.workspace }}/dist
+
+   CACHED_CARTHAGE_PATHS: |
+     ${{ github.workspace }}/src/ios/Carthage/Build/
+
+   BUILD_CACHE_KEY: ${{ github.sha }}
+
 jobs:
   job_install_deps:
     name: Install Dependencies
