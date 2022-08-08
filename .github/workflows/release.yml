@@ -150,8 +150,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
-        asset_name: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: sentry-cordova-${{ github.event.release.tag_name }}.tgz
+        asset_name: sentry-cordova-${{ github.event.release.tag_name }}.tgz
         asset_content_type: application/tgz
 
