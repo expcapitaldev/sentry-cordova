@@ -123,6 +123,8 @@ jobs:
 
   job_release:
     name: Upload Release
+    needs: [ job_artifacts ]
+    runs-on: macos-latest
     timeout-minutes: 15
     steps:
     - name: Download app artifact
