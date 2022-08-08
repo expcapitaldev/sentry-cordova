@@ -10,121 +10,131 @@ on:
         required: false
 
 jobs:
-  job_release:
-    runs-on: ubuntu-latest
-    name: 'Release a new version'
+  job_install_deps:
+    name: Install Dependencies
+    runs-on: macos-latest
+    timeout-minutes: 15
     steps:
       - name: Check out current commit (${{ github.sha }})
         uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        # we use a hash of yarn.lock as our cache key, because if it hasn't changed, our dependencies haven't changed,
+        # so no need to reinstall them
+      - name: Compute dependency cache key
+        id: compute_lockfile_hash
+        run: echo "::set-output name=hash::${{ hashFiles('yarn.lock') }}"
+      - name: Check dependency cache
+        uses: actions/cache@v2
+        id: cache_dependencies
         with:
-          token: ${{ secrets.GH_RELEASE_PAT }}
-          fetch-depth: 0
-      - name: Install Dependencies
+          path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+          key: ${{ steps.compute_lockfile_hash.outputs.hash }}
+      - name: Install dependencies
+        if: steps.cache_dependencies.outputs.cache-hit == ''
         run: yarn install
-#      - name: Prepare release
-#        uses: ./actions/PrepareRelease
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
-#        with:
-#          version: ${{ github.event.inputs.version }}
-#          force: ${{ github.event.inputs.force }}
-      - id: killswitch
-        name: Check release blockers
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
-        run: |
-          if [[ -z '${{ inputs.force }}' ]] && gh issue list -l release-blocker -s open | grep -q '^[0-9]\+[[:space:]]'; then
-            echo "Open release-blocking issues found, cancelling release...";
-            gh api -X POST repos/:owner/:repo/actions/runs/$GITHUB_RUN_ID/cancel;
-          fi
-      - name: Determine version
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
-        run: |
-          if [[ -n '${{ inputs.version }}' ]]; then
-            echo 'RELEASE_VERSION=${{ inputs.version }}' >> $GITHUB_ENV;
-          elif [[ '${{ inputs.calver }}' = 'true' ]]; then
-            # Our releases are on 15th of each month so go back 14 days (a fortnight)
-            DATE_PART=$(date -d '-1 fortnight' +'%y.%-m')
-            declare -i PATCH_VERSION=0
-            while gh api --silent "repos/:owner/:repo/git/ref/tags/$DATE_PART.$PATCH_VERSION" 2>/dev/null; do
-              PATCH_VERSION+=1
-            done
-            echo "RELEASE_VERSION=${DATE_PART}.${PATCH_VERSION}" >> $GITHUB_ENV;
-          else
-            echo "You need to provide a version to release.";
-            exit 1;
-          fi
-##    - name: Set git user to getsentry-bot
-##      shell: bash
-##      run: |
-##        echo "GIT_COMMITTER_NAME=getsentry-bot" >> $GITHUB_ENV;
-##        echo "GIT_AUTHOR_NAME=getsentry-bot" >> $GITHUB_ENV;
-##        echo "EMAIL=bot@sentry.io" >> $GITHUB_ENV;
-##    - name: Install Craft
-##      shell: bash
-##      run: |
-##        craft_url=$(curl -s https://api.github.com/repos/getsentry/craft/releases/${{ inputs.craft_version }} | jq -r '.assets[].browser_download_url | select(endswith("/craft"))')
-##        sudo curl -sL -o /usr/local/bin/craft "$craft_url"
-##        sudo chmod +x /usr/local/bin/craft
-##    - name: Craft Prepare
-##      id: craft
-##      shell: bash
-##      env:
-##        CRAFT_LOG_LEVEL: Warn
-##      run: |
-##        cd '${{ inputs.path }}'
-##        # Ensure we have origin/HEAD set
-##        git remote set-head origin --auto
-##        CRAFT_LOG_LEVEL=Debug craft prepare "${{ env.RELEASE_VERSION }}"
-##        targets=$(craft targets | jq -r '.[]|" - [ ] \(.)"')
-##        targets="${targets//$'\n'/'%0A'}"
-##        echo "::set-output name=targets::$targets"
-##    - name: Get Release Git Info
-##      id: release-git-info
-##      shell: bash
-##      run: |
-##        echo "::set-output name=branch::$(git rev-parse --symbolic-full-name @{-1})"
-##        echo "::set-output name=sha::$(git rev-parse @{-1})"
-##        echo "::set-output name=last::$(gh api repos/:owner/:repo/releases/latest | jq -r .tag_name)"
-      - name: Request publish
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
-        run: |
-          if [[ '${{ inputs.path }}' == '.' ]]; then
-            subdirectory='';
-          else
-            subdirectory='/${{ inputs.path }}';
-          fi
+    outputs:
+      dependency_cache_key: ${{ steps.compute_lockfile_hash.outputs.hash }}
 
-          if [[ -n '${{ inputs.merge_target }}' ]]; then
-            merge_target='${{ inputs.merge_target }}';
-          else
-            merge_target='(default)';
-          fi
-          title="publish: $GITHUB_REPOSITORY$subdirectory@$RELEASE_VERSION"
-          # So, GitHub only allows search with the "in" operator and this
-          # issue search can return non-exact matches. Due to this, we extract
-          # the titles of the returned issues and check them with `grep -xw`
-          # which does a non-regexp full-line match (exact match for us)
-          if gh -R $GITHUB_REPOSITORY_OWNER/publish issue list -S "'$title' in:title" --json title -q '.[] | .title' | grep -qxF -- "$title"; then
-            echo "There's already an open publish request, skipped issue creation.";
-            exit 0;
-          fi
-          body="Requested by: @$GITHUB_ACTOR
+    job_build:
+      name: Build
+      needs: job_install_deps
+      runs-on: macos-latest
+      timeout-minutes: 15
+      steps:
+        - name: Check out current commit (${{ github.sha }})
+          uses: actions/checkout@v2
+        - name: Set up Node
+          uses: actions/setup-node@v1
+        - name: Check dependency cache
+          uses: actions/cache@v2
+          with:
+            path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+            key: ${{ needs.job_install_deps.outputs.dependency_cache_key }}
+        - name: Check build cache
+          uses: actions/cache@v2
+          id: cache_built_packages
+          with:
+            path: ${{ env.CACHED_BUILD_PATHS }}
+            key: ${{ env.BUILD_CACHE_KEY }}
+        - name: Build packages
+          if: steps.cache_built_packages.outputs.cache-hit == ''
+          run: yarn build
 
-          Merge target: $merge_target
+      outputs:
+        dependency_cache_key: ${{ needs.job_install_deps.outputs.dependency_cache_key }}
 
-          Quick links:
-          - [View changes](https://github.com/$GITHUB_REPOSITORY/compare/${{ steps.release-git-info.outputs.last }}...${{ steps.release-git-info.outputs.branch }})
-          - [View check runs](https://github.com/$GITHUB_REPOSITORY/commit/${{ steps.release-git-info.outputs.sha }}/checks/)
-          Assign the **accepted** label to this issue to approve the release.
-          Leave the \`#retract\` comment under this issue to retract the release (original issuer only).
-          ### Targets
-          #${{ steps.craft.outputs.targets }}
-          Targets marked with a checkbox have already been executed.  Administrators can manually tick a checkbox to force craft to skip it.
-          "
-          gh issue create -R "$GITHUB_REPOSITORY_OWNER/publish" --title "$title" --body "$body"
+    job_carthage_build:
+      name: Build Carthage Dependencies
+      runs-on: macos-latest
+      timeout-minutes: 15
+      steps:
+        - name: Check out current commit (${{ github.sha }})
+          uses: actions/checkout@v2
+        - name: Check Carthage build cache
+          uses: actions/cache@v2
+          id: cache_built_carthage
+          with:
+            path: ${{ env.CACHED_CARTHAGE_PATHS }}
+            key: ${{ hashFiles('src/ios/Cartfile') }}
+        - name: Install Carthage
+          if: steps.cache_built_carthage.outputs.cache-hit == ''
+          run: brew install carthage
+        - name: Build Cocoa SDK from Carthage
+          if: steps.cache_built_carthage.outputs.cache-hit == ''
+          env:
+            GITHUB_ACCESS_TOKEN: ${{ secrets.GH_RELEASE_PAT }}
+          run: make build
+
+    job_artifacts:
+      name: Upload Artifacts
+      needs: [ job_build, job_carthage_build ]
+      runs-on: macos-latest
+      steps:
+        - name: Check out current commit (${{ github.sha }})
+          uses: actions/checkout@v2
+        - name: Set up Node
+          uses: actions/setup-node@v1
+        - name: Check dependency cache
+          uses: actions/cache@v2
+          with:
+            path: ${{ env.CACHED_DEPENDENCY_PATHS }}
+            key: ${{ needs.job_build.outputs.dependency_cache_key }}
+        - name: Check build cache
+          uses: actions/cache@v2
+          with:
+            path: ${{ env.CACHED_BUILD_PATHS }}
+            key: ${{ env.BUILD_CACHE_KEY }}
+        - name: Check Carthage build cache
+          uses: actions/cache@v2
+          with:
+            path: ${{ env.CACHED_CARTHAGE_PATHS }}
+            key: ${{ hashFiles('src/ios/Cartfile') }}
+        - name: Check that Carthage build exists
+          run: test -d src/ios/Carthage || exit 1
+        - name: Pack
+          run: yarn pack
+        - name: Archive artifacts
+          uses: actions/upload-artifact@v2
+          with:
+            name: sentry-cordova-${{ github.sha }}
+            path: |
+              ${{ github.workspace }}/sentry-cordova-*
+              
+    job_release:
+      - name: Download app artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sentry-cordova-${{ github.sha }}
+          path: |
+            ${{ github.workspace }}/artifact
+      - name: Upload Sentry Cordova
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
+          asset_name: sentry-cordova-${{ steps.create_tag.outputs.tag }}.tgz
+          asset_content_type: application/tgz
+

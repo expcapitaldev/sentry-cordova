@@ -159,12 +159,6 @@ jobs:
            name: ${{ github.sha }}
            path: |
              ${{ github.workspace }}/sentry-cordova-*
-       - name: Archive artifacts tgz
-         uses: actions/upload-artifact@v2
-         with:
-           name: ${{ github.sha }}.tar
-           path: |
-             ${{ github.workspace }}/sentry-cordova-*
 
    job_check_symlink:
      name: Check for Symbolic Links
