@@ -159,6 +159,12 @@ jobs:
            name: ${{ github.sha }}
            path: |
              ${{ github.workspace }}/sentry-cordova-*
+       - name: Archive artifacts tgz
+         uses: actions/upload-artifact@v2
+         with:
+           name: (Get-Item *.tgz).Name
+           path: |
+             ${{ github.workspace }}/sentry-cordova-*
 
    job_check_symlink:
      name: Check for Symbolic Links
