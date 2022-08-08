@@ -122,6 +122,9 @@ jobs:
             ${{ github.workspace }}/sentry-cordova-*
 
   job_release:
+    name: Upload Release
+    timeout-minutes: 15
+    steps:
     - name: Download app artifact
       uses: actions/download-artifact@v2
       with:
