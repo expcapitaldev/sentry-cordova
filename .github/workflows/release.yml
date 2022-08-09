@@ -144,7 +144,7 @@ jobs:
       with:
         name: sentry-cordova-${{ github.sha }}
         path: |
-          artifact
+          ${{ github.workspace }}/sentry-cordova
     - name: Get release
       id: get_release
       uses: bruceadams/get-release@v1.2.3
@@ -153,7 +153,7 @@ jobs:
     - name: LIST
       run: |
         ls -la
-        cd artifact
+        cd ${{ github.workspace }}/sentry-cordova
         ls -la
         pwd
     - name: Upload Sentry Cordova
@@ -162,7 +162,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: /Users/runner/work/sentry-cordova/sentry-cordova/artifact/sentry-cordova-${{ github.ref_name }}.tgz
-        asset_name: sentry-cordova-${{ github.ref_name }}.tgz
+        asset_path: ${{ github.workspace }}/sentry-cordova/sentry-cordova-v${{ github.ref_name }}.tgz
+        asset_name: sentry-cordova-v${{ github.ref_name }}.tgz
         asset_content_type: application/tgz
 
