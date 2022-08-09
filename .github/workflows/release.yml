@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release
-        required: true
+        description: Version to release (optional)
+        required: false
       force:
         description: Force a release even when there are release-blockers (optional)
         required: false
@@ -31,8 +31,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Set up Node
         uses: actions/setup-node@v1
-        # we use a hash of yarn.lock as our cache key, because if it hasn't changed, our dependencies haven't changed,
-        # so no need to reinstall them
       - name: Compute dependency cache key
         id: compute_lockfile_hash
         run: echo "::set-output name=hash::${{ hashFiles('yarn.lock') }}"
@@ -72,7 +70,6 @@ jobs:
       - name: Build packages
         if: steps.cache_built_packages.outputs.cache-hit == ''
         run: yarn build
-
     outputs:
       dependency_cache_key: ${{ needs.job_install_deps.outputs.dependency_cache_key }}
 
@@ -152,10 +149,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: LIST
       run: |
-        ls -la
         cd ${{ github.workspace }}/sentry-cordova
         ls -la
-        pwd
     - name: Upload Sentry Cordova
       uses: actions/upload-release-asset@v1
       env:
