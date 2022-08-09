@@ -150,9 +150,6 @@ jobs:
       uses: bruceadams/get-release@v1.2.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: List file Directory
-      run: |
-        ls -la
     - name: Upload Sentry Cordova
       uses: actions/upload-release-asset@v1
       env:
@@ -160,6 +157,6 @@ jobs:
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: sentry-cordova.tgz
-        asset_name: sentry-cordova-${{ github.event.release.tag_name }}.tgz
+        asset_name: sentry-cordova-${{ github.event.inputs.version }}.tgz
         asset_content_type: application/tgz
 
