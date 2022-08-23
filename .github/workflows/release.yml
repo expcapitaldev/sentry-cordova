@@ -171,6 +171,11 @@ jobs:
         name: sentry-cordova-${{ github.sha }}
         path: |
           ${{ github.workspace }}
+    - name: List file Directory
+      run: |
+        pwd
+        ls -la ${{ github.workspace }}
+        ls -la ${{ github.workspace }}/pakages/
     - name: Publish package on NPM 📦
       run: npm publish
       env:
