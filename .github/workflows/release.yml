@@ -161,3 +161,16 @@ jobs:
         asset_name: sentry-cordova-v${{ github.ref_name }}.tgz
         asset_content_type: application/tgz
 
+  release_npm:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download app artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: sentry-cordova-${{ github.sha }}
+        path: |
+          ${{ github.workspace }}
+    - name: Publish package on NPM 📦
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
