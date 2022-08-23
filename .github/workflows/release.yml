@@ -174,7 +174,7 @@ jobs:
     - name: List file Directory
       run: |
         pwd
-        tar -xf ${{ github.workspace }}/sentry-cordova-${{ github.sha }}
+        tar -xf ${{ github.workspace }}/sentry-cordova-v${{ github.ref_name }}.tgz
         ls -la ${{ github.workspace }}
     - name: Publish package on NPM 📦
       run: npm publish
