@@ -1,22 +1,9 @@
 # Changelog
-## 1.0.8-dev-1.0
 
-- bundle size decreased
-## 1.0.7-dev-1.0
+## 1.0.3-dev-2.0
 
-- bundle size decreased
-## 1.0.6-dev-1.0
-
-- bundle size decreased
+- ci update 
 - 
-## 1.0.5-dev-1.0
-
-- bundle size decreased
-- 
-## 1.0.4-dev-1.0
-
-- bundle size decreased
-
 ## 1.0.3-dev-1.0
 
 - bundle size decreased
