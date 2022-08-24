@@ -177,6 +177,9 @@ jobs:
         tar -xf ${{ github.workspace }}/sentry-cordova-v${{ github.ref_name }}.tgz
         ls -la ${{ github.workspace }}
     - name: Publish package on NPM 📦
-      run: cd package && npm publish
+      run: |
+        cd package
+        npm config set //registry.npmjs.org/:_authToken ${NODE_AUTH_TOKEN}
+        npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
