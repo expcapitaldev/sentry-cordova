@@ -1,6 +1,6 @@
 {
   "name": "sentry-cordova",
-  "version": "1.0.3-dev-2.0",
+  "version": "1.0.3-dev-2.1",
   "main": "dist/js/sentry-cordova.js",
   "types": "dist/js/sentry-cordova.d.ts",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "exceptions",
     "logging"
   ],
-  "description": "Official Sentry SDK for Cordova",
+  "description": "Fork from official Sentry SDK for Cordova",
   "dependencies": {
     "@sentry/browser": "6.1.0",
     "@sentry/core": "6.1.0",
