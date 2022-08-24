@@ -172,15 +172,12 @@ jobs:
         path: |
           ${{ github.workspace }}
     - name: List file Directory
-      run: |
-        pwd
-        tar -xf ${{ github.workspace }}/sentry-cordova-v${{ github.ref_name }}.tgz
-        ls -la ${{ github.workspace }}
+      run: tar -xf ${{ github.workspace }}/sentry-cordova-v${{ github.ref_name }}.tgz
     - name: Publish package on NPM 📦
       run: |
         cd package
         npm init --scope=@expcapitaldev --yes 
-        npm config set //registry.npmjs.org/expcapitaldev:_authToken ${{ NODE_AUTH_TOKEN }}
+        npm config set https://registry.npmjs.org/expcapitaldev:_authToken ${NODE_AUTH_TOKEN}
         npm publish --access=public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
