@@ -4,15 +4,9 @@
   </a>
 </p>
 
-<h1>Official Sentry SDK for Cordova (Ionic, ...)</h1>
+<h1>Fork from Official Sentry SDK for Cordova (Ionic, ...)</h1>
 
 _Bad software is everywhere, and we're tired of it. Sentry is on a mission to help developers write better software faster, so we can get back to enjoying technology. If you want to join us [<kbd>**Check out our open positions**</kbd>](https://sentry.io/careers/)_
-
-[![build](https://github.com/getsentry/sentry-cordova/workflows/Build%20&%20Test/badge.svg?branch=main)](https://github.com/getsentry/sentry-cordova/actions?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/getsentry/sentry-cordova/branch/master/graph/badge.svg)](https://codecov.io/gh/getsentry/sentry-cordova)
-[![npm version](https://img.shields.io/npm/v/sentry-cordova.svg)](https://www.npmjs.com/package/sentry-cordova)
-[![npm dm](https://img.shields.io/npm/dm/sentry-cordova.svg)](https://www.npmjs.com/package/sentry-cordova)
-[![npm dt](https://img.shields.io/npm/dt/sentry-cordova.svg)](https://www.npmjs.com/package/sentry-cordova)
 
 **This is a beta release**
 
