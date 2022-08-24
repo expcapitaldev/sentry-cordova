@@ -1,4 +1,7 @@
 # Changelog
+## 1.0.7-dev-1.0
+
+- bundle size decreased
 ## 1.0.6-dev-1.0
 
 - bundle size decreased
