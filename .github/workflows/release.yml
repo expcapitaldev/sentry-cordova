@@ -177,7 +177,8 @@ jobs:
       run: |
         cd package
         npm init --scope=@expcapitaldev --yes 
-        npm config set https://registry.npmjs.org/expcapitaldev/:_authToken ${NODE_AUTH_TOKEN}
+        npm config set //registry.npmjs.org/expcapitaldev/:_authToken ${NODE_AUTH_TOKEN}
+        npm config ls
         npm publish --access=public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
